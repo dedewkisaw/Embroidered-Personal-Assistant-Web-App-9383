@@ -4,7 +4,16 @@ import { motion } from 'framer-motion';
 import * as FiIcons from 'react-icons/fi';
 import SafeIcon from '../common/SafeIcon';
 
-const { FiHome, FiCheckSquare, FiCloud, FiFileText, FiCalendar, FiMenu, FiX, FiZap } = FiIcons;
+const {
+  FiHome,
+  FiCheckSquare,
+  FiCloud,
+  FiFileText,
+  FiCalendar,
+  FiMenu,
+  FiX,
+  FiZap
+} = FiIcons;
 
 const Navigation = () => {
   const location = useLocation();
@@ -28,10 +37,7 @@ const Navigation = () => {
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              className="flex items-center space-x-3"
-            >
+            <motion.div whileHover={{ scale: 1.05 }} className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl shadow-neumorphic-elevated flex items-center justify-center">
                 <SafeIcon icon={FiZap} className="w-5 h-5 text-white" />
               </div>
@@ -71,15 +77,15 @@ const Navigation = () => {
             </motion.button>
           </div>
         </div>
+        
+        {/* Decorative Embroidered Line */}
+        <div className="h-1 w-full bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 opacity-80"></div>
       </motion.nav>
 
       {/* Mobile Navigation */}
       <motion.div
         initial={{ opacity: 0, x: '100%' }}
-        animate={{
-          opacity: isOpen ? 1 : 0,
-          x: isOpen ? 0 : '100%'
-        }}
+        animate={{ opacity: isOpen ? 1 : 0, x: isOpen ? 0 : '100%' }}
         transition={{ duration: 0.3, ease: "easeOut" }}
         className="fixed top-16 right-0 bottom-0 w-80 bg-white/95 backdrop-blur-lg shadow-neumorphic z-40 md:hidden"
       >

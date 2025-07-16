@@ -135,17 +135,27 @@ const Dashboard = () => {
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="mb-8 text-center"
+        className="mb-8 text-center relative"
       >
-        <div className="inline-flex items-center space-x-3 mb-4">
+        {/* Decorative embroidered elements */}
+        <div className="absolute top-1/2 left-0 right-0 h-px bg-gradient-to-r from-transparent via-purple-300 to-transparent"></div>
+        <div className="absolute top-1/2 left-1/4 right-1/4 h-px bg-gradient-to-r from-transparent via-pink-300 to-transparent translate-y-4"></div>
+        
+        <div className="inline-flex items-center space-x-3 mb-4 relative">
           <div className="w-12 h-12 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full shadow-neumorphic-elevated flex items-center justify-center">
             <SafeIcon icon={FiZap} className="w-6 h-6 text-white" />
           </div>
           <h1 className="text-5xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
             Neumorphic Empire
           </h1>
+          
+          {/* Embroidered decorative elements */}
+          <div className="absolute -bottom-2 left-0 right-0 flex items-center justify-center">
+            <div className="w-32 h-1 bg-gradient-to-r from-purple-300 via-pink-300 to-purple-300 rounded-full opacity-50"></div>
+          </div>
         </div>
-        <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+        
+        <p className="text-xl text-gray-600 max-w-2xl mx-auto relative z-10 bg-gradient-to-r from-transparent via-white to-transparent py-2">
           Your intelligent productivity companion with beautiful neumorphic design
         </p>
       </motion.div>
@@ -163,9 +173,13 @@ const Dashboard = () => {
               <motion.div
                 whileHover={{ scale: 1.05, y: -5 }}
                 whileTap={{ scale: 0.95 }}
-                className="bg-white rounded-3xl p-6 shadow-neumorphic hover:shadow-neumorphic-elevated transition-all duration-300 group cursor-pointer"
+                className="bg-white rounded-3xl p-6 shadow-neumorphic hover:shadow-neumorphic-elevated transition-all duration-300 group cursor-pointer relative overflow-hidden"
               >
-                <div className="flex items-center justify-between mb-4">
+                {/* Embroidered corner patterns */}
+                <div className="absolute top-0 left-0 w-16 h-16 border-t-2 border-l-2 border-purple-200 rounded-tl-3xl opacity-50"></div>
+                <div className="absolute bottom-0 right-0 w-16 h-16 border-b-2 border-r-2 border-pink-200 rounded-br-3xl opacity-50"></div>
+                
+                <div className="flex items-center justify-between mb-4 relative">
                   <div className={`w-14 h-14 bg-gradient-to-r ${action.color} rounded-2xl shadow-neumorphic-inset flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
                     <SafeIcon icon={action.icon} className="w-7 h-7 text-white" />
                   </div>
@@ -195,7 +209,11 @@ const Dashboard = () => {
       >
         {stats.map((stat) => (
           <motion.div key={stat.label} variants={itemVariants}>
-            <div className="bg-white rounded-3xl p-6 shadow-neumorphic">
+            <div className="bg-white rounded-3xl p-6 shadow-neumorphic relative overflow-hidden">
+              {/* Embroidered line decorations */}
+              <div className="absolute top-0 left-1/4 right-1/4 h-1 bg-gradient-to-r from-transparent via-purple-100 to-transparent"></div>
+              <div className="absolute bottom-0 left-1/4 right-1/4 h-1 bg-gradient-to-r from-transparent via-pink-100 to-transparent"></div>
+              
               <div className="flex items-center justify-between mb-4">
                 <div className={`w-12 h-12 bg-gradient-to-r ${stat.color} rounded-xl shadow-neumorphic-inset flex items-center justify-center`}>
                   <SafeIcon icon={stat.icon} className="w-6 h-6 text-white" />
@@ -222,8 +240,12 @@ const Dashboard = () => {
       >
         {/* Today's Overview */}
         <motion.div variants={itemVariants}>
-          <div className="bg-white rounded-3xl p-6 shadow-neumorphic">
-            <div className="flex items-center space-x-3 mb-6">
+          <div className="bg-white rounded-3xl p-6 shadow-neumorphic relative overflow-hidden">
+            {/* Embroidered pattern */}
+            <div className="absolute inset-0 bg-gradient-to-br from-purple-50 to-transparent opacity-50 pointer-events-none"></div>
+            <div className="absolute bottom-0 right-0 w-32 h-32 border-b border-r border-purple-100 rounded-br-3xl"></div>
+            
+            <div className="flex items-center space-x-3 mb-6 relative">
               <div className="w-10 h-10 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl shadow-neumorphic-inset flex items-center justify-center">
                 <SafeIcon icon={FiSun} className="w-5 h-5 text-white" />
               </div>
@@ -232,7 +254,7 @@ const Dashboard = () => {
               </h3>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-4 relative">
               <div className="flex items-center justify-between p-4 bg-purple-50 rounded-2xl shadow-neumorphic-inset">
                 <div className="flex items-center space-x-3">
                   <SafeIcon icon={FiSun} className="w-5 h-5 text-purple-600" />
@@ -262,8 +284,12 @@ const Dashboard = () => {
 
         {/* Quick Notes */}
         <motion.div variants={itemVariants}>
-          <div className="bg-white rounded-3xl p-6 shadow-neumorphic">
-            <div className="flex items-center space-x-3 mb-6">
+          <div className="bg-white rounded-3xl p-6 shadow-neumorphic relative overflow-hidden">
+            {/* Embroidered pattern */}
+            <div className="absolute inset-0 bg-gradient-to-bl from-pink-50 to-transparent opacity-50 pointer-events-none"></div>
+            <div className="absolute top-0 left-0 w-32 h-32 border-t border-l border-pink-100 rounded-tl-3xl"></div>
+            
+            <div className="flex items-center space-x-3 mb-6 relative">
               <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-red-500 rounded-xl shadow-neumorphic-inset flex items-center justify-center">
                 <SafeIcon icon={FiFileText} className="w-5 h-5 text-white" />
               </div>
@@ -272,7 +298,7 @@ const Dashboard = () => {
               </h3>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-3 relative">
               {notes.slice(0, 3).map((note, index) => (
                 <div key={note.id} className="p-4 bg-gray-50 rounded-2xl shadow-neumorphic-inset">
                   <div className="flex items-center space-x-2 mb-2">

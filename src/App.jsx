@@ -12,7 +12,10 @@ import './App.css';
 function App() {
   return (
     <Router>
-      <div className="min-h-screen neumorphic-bg">
+      <div className="min-h-screen neumorphic-bg embroidered-bg">
+        <div className="embroidered-pattern"></div>
+        <div className="decorative-lines"></div>
+        <div className="embroidered-accent"></div>
         <Navigation />
         <motion.main
           initial={{ opacity: 0, y: 20 }}
