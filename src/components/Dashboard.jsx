@@ -6,19 +6,30 @@ import SafeIcon from '../common/SafeIcon';
 import supabase from '../lib/supabase';
 import AIAssistant from './AIAssistant';
 
-const { FiCheckSquare, FiCloud, FiFileText, FiCalendar, FiTrendingUp, FiSun, FiMoon, FiZap, FiHeart, FiStar } = FiIcons;
+const {
+  FiCheckSquare,
+  FiCloud,
+  FiFileText,
+  FiCalendar,
+  FiTrendingUp,
+  FiSun,
+  FiMoon,
+  FiZap,
+  FiHeart,
+  FiStar
+} = FiIcons;
 
 const Dashboard = () => {
   const [tasks, setTasks] = useState([]);
   const [notes, setNotes] = useState([]);
   const [events, setEvents] = useState([]);
   const [weather] = useState({
-    location: 'New York',
-    temperature: 24,
-    condition: 'sunny',
-    humidity: 65,
-    windSpeed: 12,
-    feelsLike: 27
+    location: 'Groningen, Netherlands',
+    temperature: 12,
+    condition: 'cloudy',
+    humidity: 78,
+    windSpeed: 15,
+    feelsLike: 9
   });
 
   useEffect(() => {
@@ -104,9 +115,7 @@ const Dashboard = () => {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
+      transition: { staggerChildren: 0.1 }
     }
   };
 
@@ -115,10 +124,7 @@ const Dashboard = () => {
     visible: {
       y: 0,
       opacity: 1,
-      transition: {
-        duration: 0.5,
-        ease: "easeOut"
-      }
+      transition: { duration: 0.5, ease: "easeOut" }
     }
   };
 
@@ -225,6 +231,7 @@ const Dashboard = () => {
                 Today's Overview
               </h3>
             </div>
+
             <div className="space-y-4">
               <div className="flex items-center justify-between p-4 bg-purple-50 rounded-2xl shadow-neumorphic-inset">
                 <div className="flex items-center space-x-3">
@@ -233,6 +240,7 @@ const Dashboard = () => {
                 </div>
                 <span className="text-purple-600 font-bold">3/5</span>
               </div>
+
               <div className="flex items-center justify-between p-4 bg-blue-50 rounded-2xl shadow-neumorphic-inset">
                 <div className="flex items-center space-x-3">
                   <SafeIcon icon={FiMoon} className="w-5 h-5 text-blue-600" />
@@ -240,6 +248,7 @@ const Dashboard = () => {
                 </div>
                 <span className="text-blue-600 font-bold">2 items</span>
               </div>
+
               <div className="flex items-center justify-between p-4 bg-green-50 rounded-2xl shadow-neumorphic-inset">
                 <div className="flex items-center space-x-3">
                   <SafeIcon icon={FiHeart} className="w-5 h-5 text-green-600" />
@@ -262,6 +271,7 @@ const Dashboard = () => {
                 Quick Notes
               </h3>
             </div>
+
             <div className="space-y-3">
               {notes.slice(0, 3).map((note, index) => (
                 <div key={note.id} className="p-4 bg-gray-50 rounded-2xl shadow-neumorphic-inset">
@@ -274,6 +284,7 @@ const Dashboard = () => {
                   </p>
                 </div>
               ))}
+
               {notes.length === 0 && (
                 <div className="text-center py-8 text-gray-500">
                   <SafeIcon icon={FiFileText} className="w-12 h-12 mx-auto mb-3 opacity-50" />
