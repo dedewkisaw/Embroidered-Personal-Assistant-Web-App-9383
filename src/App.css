@@ -1,4 +1,4 @@
-/* Neumorphic Design System */
+/* Neumorphic Design System */ 
 .neumorphic-bg {
   background: linear-gradient(135deg, #f0f2f5 0%, #e6e9ef 100%);
   position: relative;
@@ -21,21 +21,13 @@
 
 /* Embroidered Background Patterns */
 .embroidered-bg {
-  background-image: 
+  background-image:
     linear-gradient(rgba(255, 255, 255, 0.5) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255, 255, 255, 0.5) 1px, transparent 1px),
     linear-gradient(rgba(114, 91, 218, 0.05) 1px, transparent 1px),
     linear-gradient(90deg, rgba(114, 91, 218, 0.05) 1px, transparent 1px);
-  background-size: 
-    100px 100px,
-    100px 100px,
-    20px 20px,
-    20px 20px;
-  background-position:
-    -1px -1px,
-    -1px -1px,
-    -1px -1px,
-    -1px -1px;
+  background-size: 100px 100px, 100px 100px, 20px 20px, 20px 20px;
+  background-position: -1px -1px, -1px -1px, -1px -1px, -1px -1px;
 }
 
 .embroidered-pattern {
@@ -44,7 +36,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-image: 
+  background-image:
     radial-gradient(circle at 25px 25px, rgba(114, 91, 218, 0.15) 2%, transparent 5%),
     radial-gradient(circle at 75px 75px, rgba(236, 72, 153, 0.1) 2%, transparent 5%);
   background-size: 100px 100px;
@@ -58,7 +50,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: 
+  background:
     linear-gradient(135deg, transparent 49.5%, rgba(114, 91, 218, 0.1) 49.5%, rgba(114, 91, 218, 0.1) 50.5%, transparent 50.5%),
     linear-gradient(45deg, transparent 49.5%, rgba(236, 72, 153, 0.1) 49.5%, rgba(236, 72, 153, 0.1) 50.5%, transparent 50.5%);
   background-size: 60px 60px;
@@ -72,7 +64,8 @@
   left: 0;
   right: 0;
   height: 8px;
-  background: linear-gradient(90deg, 
+  background: linear-gradient(
+    90deg,
     rgba(147, 51, 234, 0.7),
     rgba(236, 72, 153, 0.7) 25%,
     rgba(245, 158, 11, 0.7) 50%,
@@ -106,6 +99,70 @@
 
 .shadow-neumorphic-inset-focus {
   box-shadow: inset 8px 8px 16px rgba(147, 51, 234, 0.2), inset -8px -8px 16px rgba(255, 255, 255, 0.9);
+}
+
+/* Neumorphic Select Styles */
+select.select-neumorphic {
+  appearance: none;
+  background: linear-gradient(135deg, #f0f2f5 0%, #e6e9ef 100%);
+  border: none;
+  border-radius: 16px;
+  padding: 12px 40px 12px 16px;
+  font-size: 14px;
+  color: #4a5568;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 8px 8px 16px rgba(163, 177, 198, 0.6), -8px -8px 16px rgba(255, 255, 255, 0.8);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%234a5568' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+}
+
+select.select-neumorphic:hover {
+  transform: translateY(-2px);
+  box-shadow: 10px 10px 20px rgba(163, 177, 198, 0.7), -10px -10px 20px rgba(255, 255, 255, 0.9);
+}
+
+select.select-neumorphic:focus {
+  outline: none;
+  box-shadow: inset 8px 8px 16px rgba(163, 177, 198, 0.3), inset -8px -8px 16px rgba(255, 255, 255, 0.5);
+}
+
+select.select-neumorphic option {
+  background: #f0f2f5;
+  color: #4a5568;
+  padding: 12px;
+}
+
+/* Modal Select Styles */
+.modal-select-neumorphic {
+  width: 100%;
+  padding: 16px;
+  border-radius: 16px;
+  background: #f0f2f5;
+  border: none;
+  box-shadow: inset 8px 8px 16px rgba(163, 177, 198, 0.6), inset -8px -8px 16px rgba(255, 255, 255, 0.8);
+  color: #4a5568;
+  font-size: 16px;
+  transition: all 0.3s ease;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%234a5568' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+  background-size: 16px;
+  padding-right: 48px;
+}
+
+.modal-select-neumorphic:focus {
+  outline: none;
+  box-shadow: inset 8px 8px 16px rgba(147, 51, 234, 0.2), inset -8px -8px 16px rgba(255, 255, 255, 0.9);
+}
+
+.modal-select-neumorphic option {
+  background: #f0f2f5;
+  color: #4a5568;
+  padding: 12px;
 }
 
 /* Hover Effects */
@@ -149,12 +206,8 @@
 }
 
 @keyframes float {
-  0%, 100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
 }
 
 .pulse-glow {
@@ -162,14 +215,8 @@
 }
 
 @keyframes pulse-glow {
-  0%, 100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.8;
-    transform: scale(1.05);
-  }
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.05); }
 }
 
 /* Text Gradients */

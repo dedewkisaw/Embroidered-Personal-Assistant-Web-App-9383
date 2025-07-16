@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths } from 'date-fns';
 import * as FiIcons from 'react-icons/fi';
 import SafeIcon from '../common/SafeIcon';
-import supabase from '../lib/supabase';
+import { useEventOperations } from '../hooks/useDataOperations';
 import AIAssistant from './AIAssistant';
 
 const { FiChevronLeft, FiChevronRight, FiPlus, FiClock, FiMapPin, FiUsers, FiCalendar, FiX } = FiIcons;
@@ -20,45 +20,35 @@ const CalendarWidget = () => {
     end_time: '',
     location: ''
   });
-  const [loading, setLoading] = useState(true);
+
+  const { loading, error, createEvent, updateEvent, deleteEvent, fetchEvents } = useEventOperations();
 
   useEffect(() => {
-    fetchEvents();
+    loadEvents();
   }, []);
 
-  const fetchEvents = async () => {
+  const loadEvents = async () => {
     try {
-      const { data, error } = await supabase
-        .from('calendar_events_n7x9k2')
-        .select('*')
-        .order('start_time', { ascending: true });
-
-      if (error) throw error;
+      const data = await fetchEvents();
       setEvents(data || []);
     } catch (error) {
-      console.error('Error fetching events:', error);
-    } finally {
-      setLoading(false);
+      console.error('Error loading events:', error);
     }
   };
 
-  const createEvent = async () => {
+  const handleCreateEvent = async () => {
     if (!newEvent.title.trim() || !newEvent.start_time || !newEvent.end_time) return;
 
     try {
-      const { data, error } = await supabase
-        .from('calendar_events_n7x9k2')
-        .insert({
-          title: newEvent.title,
-          description: newEvent.description,
-          start_time: newEvent.start_time,
-          end_time: newEvent.end_time,
-          location: newEvent.location
-        })
-        .select()
-        .single();
+      const eventData = {
+        title: newEvent.title,
+        description: newEvent.description,
+        start_time: newEvent.start_time,
+        end_time: newEvent.end_time,
+        location: newEvent.location
+      };
 
-      if (error) throw error;
+      const data = await createEvent(eventData);
       setEvents([...events, data]);
       setNewEvent({
         title: '',
@@ -88,30 +78,18 @@ const CalendarWidget = () => {
 
   const containerVariants = {
     hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
+    visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
   };
 
   const itemVariants = {
     hidden: { y: 20, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: {
-        duration: 0.5,
-        ease: "easeOut"
-      }
-    }
+    visible: { y: 0, opacity: 1, transition: { duration: 0.5, ease: "easeOut" } }
   };
 
-  if (loading) {
+  if (loading && events.length === 0) {
     return (
       <div className="max-w-6xl mx-auto flex items-center justify-center min-h-96">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-600"></div>
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-green-500"></div>
       </div>
     );
   }
@@ -137,6 +115,13 @@ const CalendarWidget = () => {
           Schedule and manage your events with AI assistance
         </p>
       </motion.div>
+
+      {/* Error Display */}
+      {error && (
+        <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-2xl">
+          Error: {error}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Calendar */}
@@ -201,9 +186,7 @@ const CalendarWidget = () => {
                         : 'bg-gray-50 hover:bg-gray-100 shadow-neumorphic'
                     }`}
                   >
-                    <span className={`font-medium ${
-                      isSameMonth(day, currentDate) ? '' : 'text-gray-400'
-                    }`}>
+                    <span className={`font-medium ${isSameMonth(day, currentDate) ? '' : 'text-gray-400'}`}>
                       {format(day, 'd')}
                     </span>
                     {dayEvents.length > 0 && (
@@ -237,7 +220,8 @@ const CalendarWidget = () => {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => setIsCreating(true)}
-            className="w-full px-6 py-4 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-2xl shadow-neumorphic-elevated flex items-center justify-center space-x-2 font-medium hover:shadow-neumorphic-elevated-hover transition-all duration-300"
+            disabled={loading}
+            className="w-full px-6 py-4 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-2xl shadow-neumorphic-elevated flex items-center justify-center space-x-2 font-medium hover:shadow-neumorphic-elevated-hover transition-all duration-300 disabled:opacity-50"
           >
             <SafeIcon icon={FiPlus} className="w-5 h-5" />
             <span>Add Event</span>
@@ -317,7 +301,7 @@ const CalendarWidget = () => {
                   <SafeIcon icon={FiX} className="w-5 h-5" />
                 </motion.button>
               </div>
-              
+
               <div className="space-y-4">
                 <input
                   type="text"
@@ -326,6 +310,7 @@ const CalendarWidget = () => {
                   onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
                   className="w-full px-4 py-4 bg-gray-50 rounded-2xl border-none outline-none shadow-neumorphic-inset text-gray-800 placeholder-gray-500 focus:shadow-neumorphic-inset-focus transition-all duration-300"
                 />
+
                 <textarea
                   placeholder="Event description..."
                   value={newEvent.description}
@@ -333,6 +318,7 @@ const CalendarWidget = () => {
                   rows="3"
                   className="w-full px-4 py-4 bg-gray-50 rounded-2xl border-none outline-none shadow-neumorphic-inset text-gray-800 placeholder-gray-500 resize-none focus:shadow-neumorphic-inset-focus transition-all duration-300"
                 />
+
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Start Time</label>
@@ -353,6 +339,7 @@ const CalendarWidget = () => {
                     />
                   </div>
                 </div>
+
                 <input
                   type="text"
                   placeholder="Location (optional)..."
@@ -361,7 +348,7 @@ const CalendarWidget = () => {
                   className="w-full px-4 py-4 bg-gray-50 rounded-2xl border-none outline-none shadow-neumorphic-inset text-gray-800 placeholder-gray-500 focus:shadow-neumorphic-inset-focus transition-all duration-300"
                 />
               </div>
-              
+
               <div className="flex justify-end space-x-3 mt-6">
                 <motion.button
                   whileHover={{ scale: 1.05 }}
@@ -374,10 +361,11 @@ const CalendarWidget = () => {
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  onClick={createEvent}
-                  className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl shadow-neumorphic-elevated font-medium hover:shadow-neumorphic-elevated-hover transition-all duration-300"
+                  onClick={handleCreateEvent}
+                  disabled={loading}
+                  className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl shadow-neumorphic-elevated font-medium hover:shadow-neumorphic-elevated-hover transition-all duration-300 disabled:opacity-50"
                 >
-                  Create Event
+                  {loading ? 'Creating...' : 'Create Event'}
                 </motion.button>
               </div>
             </motion.div>

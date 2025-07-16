@@ -2,20 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as FiIcons from 'react-icons/fi';
 import SafeIcon from '../common/SafeIcon';
-import supabase from '../lib/supabase';
+import { useTaskOperations } from '../hooks/useDataOperations';
 import AIAssistant from './AIAssistant';
 
-const { 
-  FiPlus, 
-  FiCheck, 
-  FiX, 
-  FiClock, 
-  FiStar, 
-  FiEdit3, 
-  FiTrash2, 
-  FiFilter,
-  FiCheckSquare
-} = FiIcons;
+const { FiPlus, FiCheck, FiX, FiClock, FiStar, FiEdit3, FiTrash2, FiFilter, FiCheckSquare } = FiIcons;
 
 const TaskManager = () => {
   const [tasks, setTasks] = useState([]);
@@ -29,84 +19,64 @@ const TaskManager = () => {
     due_time: '',
     category: 'personal'
   });
-  const [loading, setLoading] = useState(true);
 
+  const { loading, error, createTask, updateTask, deleteTask, fetchTasks } = useTaskOperations();
   const priorities = ['low', 'medium', 'high'];
   const categories = ['personal', 'work', 'health', 'learning'];
 
   useEffect(() => {
-    fetchTasks();
+    loadTasks();
   }, []);
 
-  const fetchTasks = async () => {
+  const loadTasks = async () => {
     try {
-      const { data, error } = await supabase
-        .from('tasks_n7x9k2')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
+      const data = await fetchTasks();
       setTasks(data || []);
     } catch (error) {
-      console.error('Error fetching tasks:', error);
-    } finally {
-      setLoading(false);
+      console.error('Error loading tasks:', error);
     }
   };
 
-  const createTask = async () => {
+  const handleCreateTask = async () => {
     if (!newTask.title.trim()) return;
 
     try {
-      const { data, error } = await supabase
-        .from('tasks_n7x9k2')
-        .insert({
-          title: newTask.title,
-          description: newTask.description,
-          priority: newTask.priority,
-          due_time: newTask.due_time || null,
-          category: newTask.category,
-          completed: false
-        })
-        .select()
-        .single();
+      const taskData = {
+        title: newTask.title,
+        description: newTask.description,
+        priority: newTask.priority,
+        due_time: newTask.due_time || null,
+        category: newTask.category,
+        completed: false
+      };
 
-      if (error) throw error;
-
+      const data = await createTask(taskData);
       setTasks([data, ...tasks]);
-      setNewTask({ title: '', description: '', priority: 'medium', due_time: '', category: 'personal' });
+      setNewTask({
+        title: '',
+        description: '',
+        priority: 'medium',
+        due_time: '',
+        category: 'personal'
+      });
       setIsCreating(false);
     } catch (error) {
       console.error('Error creating task:', error);
     }
   };
 
-  const updateTask = async (id, updates) => {
+  const handleUpdateTask = async (id, updates) => {
     try {
-      const { data, error } = await supabase
-        .from('tasks_n7x9k2')
-        .update(updates)
-        .eq('id', id)
-        .select()
-        .single();
-
-      if (error) throw error;
-
+      const data = await updateTask(id, updates);
       setTasks(tasks.map(task => task.id === id ? data : task));
     } catch (error) {
       console.error('Error updating task:', error);
     }
   };
 
-  const deleteTask = async (id) => {
+  const handleDeleteTask = async (id) => {
     try {
-      const { error } = await supabase
-        .from('tasks_n7x9k2')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-
+      await deleteTask(id);
       setTasks(tasks.filter(task => task.id !== id));
     } catch (error) {
       console.error('Error deleting task:', error);
@@ -114,7 +84,26 @@ const TaskManager = () => {
   };
 
   const toggleTaskCompletion = async (id, completed) => {
-    await updateTask(id, { completed: !completed });
+    await handleUpdateTask(id, { completed: !completed });
+  };
+
+  const handleEditTask = async () => {
+    if (!editingTask.title.trim()) return;
+
+    try {
+      const updates = {
+        title: editingTask.title,
+        description: editingTask.description,
+        priority: editingTask.priority,
+        category: editingTask.category,
+        due_time: editingTask.due_time || null
+      };
+
+      await handleUpdateTask(editingTask.id, updates);
+      setEditingTask(null);
+    } catch (error) {
+      console.error('Error updating task:', error);
+    }
   };
 
   const filteredTasks = tasks.filter(task => {
@@ -135,22 +124,15 @@ const TaskManager = () => {
 
   const containerVariants = {
     hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { staggerChildren: 0.1 }
-    }
+    visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
   };
 
   const itemVariants = {
     hidden: { y: 20, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: { duration: 0.5, ease: "easeOut" }
-    }
+    visible: { y: 0, opacity: 1, transition: { duration: 0.5, ease: "easeOut" } }
   };
 
-  if (loading) {
+  if (loading && tasks.length === 0) {
     return (
       <div className="max-w-6xl mx-auto flex items-center justify-center min-h-96">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-600"></div>
@@ -180,6 +162,13 @@ const TaskManager = () => {
         </p>
       </motion.div>
 
+      {/* Error Display */}
+      {error && (
+        <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-2xl">
+          Error: {error}
+        </div>
+      )}
+
       {/* Controls */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -191,7 +180,7 @@ const TaskManager = () => {
           <select
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
-            className="px-4 py-3 bg-white rounded-2xl shadow-neumorphic outline-none focus:shadow-neumorphic-inset-focus transition-all duration-300"
+            className="select-neumorphic"
           >
             <option value="all">All Tasks</option>
             <option value="pending">Pending</option>
@@ -206,7 +195,8 @@ const TaskManager = () => {
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => setIsCreating(true)}
-          className="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-2xl shadow-neumorphic-elevated flex items-center space-x-2 font-medium hover:shadow-neumorphic-elevated-hover transition-all duration-300"
+          disabled={loading}
+          className="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-2xl shadow-neumorphic-elevated flex items-center space-x-2 font-medium hover:shadow-neumorphic-elevated-hover transition-all duration-300 disabled:opacity-50"
         >
           <SafeIcon icon={FiPlus} className="w-5 h-5" />
           <span>New Task</span>
@@ -224,7 +214,9 @@ const TaskManager = () => {
           <motion.div
             key={task.id}
             variants={itemVariants}
-            className={`bg-white rounded-3xl p-6 shadow-neumorphic hover:shadow-neumorphic-elevated transition-all duration-300 ${task.completed ? 'opacity-60' : ''}`}
+            className={`bg-white rounded-3xl p-6 shadow-neumorphic hover:shadow-neumorphic-elevated transition-all duration-300 ${
+              task.completed ? 'opacity-60' : ''
+            }`}
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4 flex-1">
@@ -233,8 +225,8 @@ const TaskManager = () => {
                   whileTap={{ scale: 0.9 }}
                   onClick={() => toggleTaskCompletion(task.id, task.completed)}
                   className={`w-8 h-8 rounded-full flex items-center justify-center shadow-neumorphic-inset transition-all duration-300 ${
-                    task.completed 
-                      ? 'bg-gradient-to-r from-green-500 to-green-600 text-white' 
+                    task.completed
+                      ? 'bg-gradient-to-r from-green-500 to-green-600 text-white'
                       : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
                   }`}
                 >
@@ -243,18 +235,18 @@ const TaskManager = () => {
 
                 <div className="flex-1">
                   <div className="flex items-center space-x-3 mb-2">
-                    <h3 className={`text-lg font-semibold ${task.completed ? 'line-through text-gray-500' : 'text-gray-800'}`}>
+                    <h3 className={`text-lg font-semibold ${
+                      task.completed ? 'line-through text-gray-500' : 'text-gray-800'
+                    }`}>
                       {task.title}
                     </h3>
                     <div className={`px-2 py-1 rounded-full text-xs font-medium text-white bg-gradient-to-r ${getPriorityColor(task.priority)}`}>
                       {task.priority}
                     </div>
                   </div>
-                  
                   {task.description && (
                     <p className="text-gray-600 text-sm mb-2">{task.description}</p>
                   )}
-                  
                   <div className="flex items-center space-x-4 text-sm text-gray-500">
                     <span className="capitalize">{task.category}</span>
                     {task.due_time && (
@@ -279,7 +271,7 @@ const TaskManager = () => {
                 <motion.button
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
-                  onClick={() => deleteTask(task.id)}
+                  onClick={() => handleDeleteTask(task.id)}
                   className="p-2 text-gray-400 hover:text-red-500 rounded-xl transition-colors"
                 >
                   <SafeIcon icon={FiTrash2} className="w-4 h-4" />
@@ -348,7 +340,7 @@ const TaskManager = () => {
                   <select
                     value={newTask.priority}
                     onChange={(e) => setNewTask({ ...newTask, priority: e.target.value })}
-                    className="px-4 py-4 bg-gray-50 rounded-2xl border-none outline-none shadow-neumorphic-inset text-gray-800 focus:shadow-neumorphic-inset-focus transition-all duration-300"
+                    className="modal-select-neumorphic"
                   >
                     {priorities.map(priority => (
                       <option key={priority} value={priority}>
@@ -360,7 +352,7 @@ const TaskManager = () => {
                   <select
                     value={newTask.category}
                     onChange={(e) => setNewTask({ ...newTask, category: e.target.value })}
-                    className="px-4 py-4 bg-gray-50 rounded-2xl border-none outline-none shadow-neumorphic-inset text-gray-800 focus:shadow-neumorphic-inset-focus transition-all duration-300"
+                    className="modal-select-neumorphic"
                   >
                     {categories.map(category => (
                       <option key={category} value={category}>
@@ -393,10 +385,11 @@ const TaskManager = () => {
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  onClick={createTask}
-                  className="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl shadow-neumorphic-elevated font-medium hover:shadow-neumorphic-elevated-hover transition-all duration-300"
+                  onClick={handleCreateTask}
+                  disabled={loading}
+                  className="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl shadow-neumorphic-elevated font-medium hover:shadow-neumorphic-elevated-hover transition-all duration-300 disabled:opacity-50"
                 >
-                  Create Task
+                  {loading ? 'Creating...' : 'Create Task'}
                 </motion.button>
               </div>
             </motion.div>
@@ -454,7 +447,7 @@ const TaskManager = () => {
                   <select
                     value={editingTask.priority}
                     onChange={(e) => setEditingTask({ ...editingTask, priority: e.target.value })}
-                    className="px-4 py-4 bg-gray-50 rounded-2xl border-none outline-none shadow-neumorphic-inset text-gray-800 focus:shadow-neumorphic-inset-focus transition-all duration-300"
+                    className="modal-select-neumorphic"
                   >
                     {priorities.map(priority => (
                       <option key={priority} value={priority}>
@@ -466,7 +459,7 @@ const TaskManager = () => {
                   <select
                     value={editingTask.category}
                     onChange={(e) => setEditingTask({ ...editingTask, category: e.target.value })}
-                    className="px-4 py-4 bg-gray-50 rounded-2xl border-none outline-none shadow-neumorphic-inset text-gray-800 focus:shadow-neumorphic-inset-focus transition-all duration-300"
+                    className="modal-select-neumorphic"
                   >
                     {categories.map(category => (
                       <option key={category} value={category}>
@@ -499,19 +492,11 @@ const TaskManager = () => {
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  onClick={() => {
-                    updateTask(editingTask.id, {
-                      title: editingTask.title,
-                      description: editingTask.description,
-                      priority: editingTask.priority,
-                      category: editingTask.category,
-                      due_time: editingTask.due_time || null
-                    });
-                    setEditingTask(null);
-                  }}
-                  className="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl shadow-neumorphic-elevated font-medium hover:shadow-neumorphic-elevated-hover transition-all duration-300"
+                  onClick={handleEditTask}
+                  disabled={loading}
+                  className="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl shadow-neumorphic-elevated font-medium hover:shadow-neumorphic-elevated-hover transition-all duration-300 disabled:opacity-50"
                 >
-                  Update Task
+                  {loading ? 'Updating...' : 'Update Task'}
                 </motion.button>
               </div>
             </motion.div>

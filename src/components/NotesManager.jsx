@@ -2,21 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as FiIcons from 'react-icons/fi';
 import SafeIcon from '../common/SafeIcon';
-import supabase from '../lib/supabase';
+import { useNoteOperations } from '../hooks/useDataOperations';
 import AIAssistant from './AIAssistant';
 
-const { 
-  FiPlus, 
-  FiSearch, 
-  FiEdit3, 
-  FiTrash2, 
-  FiBookmark, 
-  FiTag, 
-  FiFilter,
-  FiFileText,
-  FiX,
-  FiStar
-} = FiIcons;
+const { FiPlus, FiSearch, FiEdit3, FiTrash2, FiBookmark, FiTag, FiFilter, FiFileText, FiX, FiStar } = FiIcons;
 
 const NotesManager = () => {
   const [notes, setNotes] = useState([]);
@@ -30,73 +19,60 @@ const NotesManager = () => {
     category: 'personal',
     tags: []
   });
-  const [loading, setLoading] = useState(true);
 
+  const { loading, error, createNote, updateNote, deleteNote, fetchNotes } = useNoteOperations();
   const categories = ['all', 'work', 'personal', 'learning', 'ideas'];
 
   useEffect(() => {
-    fetchNotes();
+    loadNotes();
   }, []);
 
-  const fetchNotes = async () => {
+  const loadNotes = async () => {
     try {
-      const { data, error } = await supabase
-        .from('notes_n7x9k2')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
+      const data = await fetchNotes();
       setNotes(data || []);
     } catch (error) {
-      console.error('Error fetching notes:', error);
-    } finally {
-      setLoading(false);
+      console.error('Error loading notes:', error);
     }
   };
 
-  const createNote = async () => {
+  const handleCreateNote = async () => {
     if (!newNote.title.trim() || !newNote.content.trim()) return;
 
     try {
-      const { data, error } = await supabase
-        .from('notes_n7x9k2')
-        .insert({
-          title: newNote.title,
-          content: newNote.content,
-          category: newNote.category,
-          tags: newNote.tags
-        })
-        .select()
-        .single();
+      const noteData = {
+        title: newNote.title,
+        content: newNote.content,
+        category: newNote.category,
+        tags: newNote.tags
+      };
 
-      if (error) throw error;
-
+      const data = await createNote(noteData);
       setNotes([data, ...notes]);
-      setNewNote({ title: '', content: '', category: 'personal', tags: [] });
+      setNewNote({
+        title: '',
+        content: '',
+        category: 'personal',
+        tags: []
+      });
       setIsCreating(false);
     } catch (error) {
       console.error('Error creating note:', error);
     }
   };
 
-  const updateNote = async () => {
+  const handleUpdateNote = async () => {
     if (!editingNote.title.trim() || !editingNote.content.trim()) return;
 
     try {
-      const { data, error } = await supabase
-        .from('notes_n7x9k2')
-        .update({
-          title: editingNote.title,
-          content: editingNote.content,
-          category: editingNote.category,
-          tags: editingNote.tags
-        })
-        .eq('id', editingNote.id)
-        .select()
-        .single();
+      const updates = {
+        title: editingNote.title,
+        content: editingNote.content,
+        category: editingNote.category,
+        tags: editingNote.tags
+      };
 
-      if (error) throw error;
-
+      const data = await updateNote(editingNote.id, updates);
       setNotes(notes.map(note => note.id === editingNote.id ? data : note));
       setEditingNote(null);
     } catch (error) {
@@ -104,15 +80,9 @@ const NotesManager = () => {
     }
   };
 
-  const deleteNote = async (id) => {
+  const handleDeleteNote = async (id) => {
     try {
-      const { error } = await supabase
-        .from('notes_n7x9k2')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-
+      await deleteNote(id);
       setNotes(notes.filter(note => note.id !== id));
     } catch (error) {
       console.error('Error deleting note:', error);
@@ -138,22 +108,15 @@ const NotesManager = () => {
 
   const containerVariants = {
     hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { staggerChildren: 0.1 }
-    }
+    visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
   };
 
   const itemVariants = {
     hidden: { y: 20, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: { duration: 0.5, ease: "easeOut" }
-    }
+    visible: { y: 0, opacity: 1, transition: { duration: 0.5, ease: "easeOut" } }
   };
 
-  if (loading) {
+  if (loading && notes.length === 0) {
     return (
       <div className="max-w-6xl mx-auto flex items-center justify-center min-h-96">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-orange-500"></div>
@@ -183,6 +146,13 @@ const NotesManager = () => {
         </p>
       </motion.div>
 
+      {/* Error Display */}
+      {error && (
+        <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-2xl">
+          Error: {error}
+        </div>
+      )}
+
       {/* Controls */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -204,7 +174,7 @@ const NotesManager = () => {
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="px-4 py-3 bg-white rounded-2xl shadow-neumorphic outline-none focus:shadow-neumorphic-inset-focus transition-all duration-300"
+            className="select-neumorphic"
           >
             {categories.map(category => (
               <option key={category} value={category}>
@@ -218,7 +188,8 @@ const NotesManager = () => {
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => setIsCreating(true)}
-          className="px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-2xl shadow-neumorphic-elevated flex items-center space-x-2 font-medium hover:shadow-neumorphic-elevated-hover transition-all duration-300"
+          disabled={loading}
+          className="px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-2xl shadow-neumorphic-elevated flex items-center space-x-2 font-medium hover:shadow-neumorphic-elevated-hover transition-all duration-300 disabled:opacity-50"
         >
           <SafeIcon icon={FiPlus} className="w-5 h-5" />
           <span>New Note</span>
@@ -255,7 +226,7 @@ const NotesManager = () => {
                 <motion.button
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
-                  onClick={() => deleteNote(note.id)}
+                  onClick={() => handleDeleteNote(note.id)}
                   className="p-2 text-gray-400 hover:text-red-500 rounded-xl transition-colors"
                 >
                   <SafeIcon icon={FiTrash2} className="w-4 h-4" />
@@ -350,7 +321,7 @@ const NotesManager = () => {
                 <select
                   value={newNote.category}
                   onChange={(e) => setNewNote({ ...newNote, category: e.target.value })}
-                  className="w-full px-4 py-4 bg-gray-50 rounded-2xl border-none outline-none shadow-neumorphic-inset text-gray-800 focus:shadow-neumorphic-inset-focus transition-all duration-300"
+                  className="modal-select-neumorphic"
                 >
                   <option value="personal">Personal</option>
                   <option value="work">Work</option>
@@ -371,10 +342,11 @@ const NotesManager = () => {
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  onClick={createNote}
-                  className="px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-xl shadow-neumorphic-elevated font-medium hover:shadow-neumorphic-elevated-hover transition-all duration-300"
+                  onClick={handleCreateNote}
+                  disabled={loading}
+                  className="px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-xl shadow-neumorphic-elevated font-medium hover:shadow-neumorphic-elevated-hover transition-all duration-300 disabled:opacity-50"
                 >
-                  Create Note
+                  {loading ? 'Creating...' : 'Create Note'}
                 </motion.button>
               </div>
             </motion.div>
@@ -431,7 +403,7 @@ const NotesManager = () => {
                 <select
                   value={editingNote.category}
                   onChange={(e) => setEditingNote({ ...editingNote, category: e.target.value })}
-                  className="w-full px-4 py-4 bg-gray-50 rounded-2xl border-none outline-none shadow-neumorphic-inset text-gray-800 focus:shadow-neumorphic-inset-focus transition-all duration-300"
+                  className="modal-select-neumorphic"
                 >
                   <option value="personal">Personal</option>
                   <option value="work">Work</option>
@@ -452,10 +424,11 @@ const NotesManager = () => {
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  onClick={updateNote}
-                  className="px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-xl shadow-neumorphic-elevated font-medium hover:shadow-neumorphic-elevated-hover transition-all duration-300"
+                  onClick={handleUpdateNote}
+                  disabled={loading}
+                  className="px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-xl shadow-neumorphic-elevated font-medium hover:shadow-neumorphic-elevated-hover transition-all duration-300 disabled:opacity-50"
                 >
-                  Update Note
+                  {loading ? 'Updating...' : 'Update Note'}
                 </motion.button>
               </div>
             </motion.div>
